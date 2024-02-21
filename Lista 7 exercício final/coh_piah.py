@@ -1,5 +1,5 @@
 import re
-
+import string
 def le_assinatura():
     '''A funcao le os valores dos tracos linguisticos do modelo e devolve uma assinatura a ser comparada com os textos fornecidos'''
     print("Bem-vindo ao detector automático de COH-PIAH.")
@@ -78,28 +78,59 @@ def compara_assinatura(as_a, as_b):
     Sa_b = soma / 6
     return Sa_b
 
+def soma_char_alfa_sentenca(sentencas):
+    soma = 0
 
+    for sentenca in sentencas:
+        sentenca_sem_separadores = re.sub(r'[.]+', '', sentenca)
+        for caractere in sentenca_sem_separadores:
+            soma += 1
+
+    return soma
+
+def soma_char_alfa_frase(frases):
+    soma = 0
+
+    for frase in frases:
+        frase_sem_separadores = re.sub(r'[,:;]+', '', frase)
+        for caractere in frase_sem_separadores:
+            soma += 1
+
+    return soma
 def calcula_assinatura(texto):
-    '''IMPLEMENTAR. Essa funcao recebe um texto e deve devolver a assinatura do texto.'''
     sentencas = separa_sentencas(texto)
-    i = 0 
     frases = []
-    while i != len(sentencas):
-        frases.append(separa_frases(sentencas[i]))
-        i += 1
+    for sentenca in sentencas:
+        for frase in separa_frases(sentenca):
+            frases.append(frase) 
     palavras = []
-    i = 0
-    while i != len(frases):
-        palavras.append(separa_palavras(frases[i]))
-        i += 1
+    for frase in frases:
+        for palavra in separa_palavras(frase):
+            palavras.append(palavra)
 
 
-    pass
+    wal = sum(len(palavra) for palavra in palavras)/ len(palavras)
+    ttr = n_palavras_diferentes(palavras) / len(palavras)
+    hlr = n_palavras_unicas(palavras) / len(palavras)
+    sal = soma_char_alfa_sentenca(sentencas) / len(sentencas)
+    sac = len(frases) / len(sentencas)
+    pal = soma_char_alfa_frase(frases) / len(frases)
+    return [wal, ttr, hlr, sal, sac, pal]
 
 def avalia_textos(textos, ass_cp):
-    '''IMPLEMENTAR. Essa funcao recebe uma lista de textos e uma assinatura ass_cp e deve devolver o numero (1 a n) do texto com maior probabilidade de ter sido infectado por COH-PIAH.'''
-    pass
-as_a = [1, 2, 3, 4, 5, 6]
-as_b = [33, 27, 10, 6, 51, 62]
+    if len(textos) == 0:
+        print("A lista de textos está vazia. Não é possível avaliar.")
+        return -1
+    GrauMin = float('inf')
+    infectado = -1
+    for i, texto in enumerate(textos):
+        as_texto = calcula_assinatura(texto)
+        grauSimilaridade = compara_assinatura(ass_cp, as_texto)
+        if grauSimilaridade < GrauMin:
+            GrauMin = grauSimilaridade
+            infectado = i + 1
+    return infectado
 
-print(compara_assinatura(as_a, as_b))
+as_cp = le_assinatura()
+textos = le_textos()
+print("O autor do texto", avalia_textos(textos, as_cp), "está infectado com COH-PIAH")
